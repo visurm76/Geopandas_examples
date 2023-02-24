@@ -1,4 +1,7 @@
+from timeit import timeit
+
 import pandas as pd
+import numpy as np
 
 print(pd.__version__)
 
@@ -43,8 +46,8 @@ print(num_breeds)
 print('_________________________________')
 
 # Index
-indA = pd.Index([1,2,3,4,5])
-indB = pd.Index([2,3])
+indA = pd.Index([1, 2, 3, 4, 5])
+indB = pd.Index([2, 3])
 indAB = indA.intersection(indB)
 
 # Пересечение
@@ -52,10 +55,122 @@ print(f"indAB {indAB}")
 print('_________________________________')
 
 # Объект, как словарь
-data = pd.Series([1,54,31,54,32], index=['a', 'b', 'c', 'd', 'e'])
+data = pd.Series([1, 56, 31, 54, 32], index=['a', 'b', 'c', 'd', 'e'])
 print(data['b'])
 print(data.keys())
 print(list(data.items()))
 print(data['a':'c'])
+print(data[['a', 'c']])  # Конкретные индексы
+print(data > 10)
 print('_________________________________')
 
+# Индексаторы loc - явное обращение по индексу
+print(data.loc['a':'b'])
+
+# Индексаторы iloc - неявное обращение по индексу
+print(data.iloc[::-1])
+print('_________________________________')
+
+# Объект DataFrame как словарь
+
+area = pd.Series({'California': 423967, 'Texas': 695662,
+                  'New York': 141297, 'Florida': 170312,
+                  'Illinois': 149995})
+
+pop = pd.Series({'California': 38332521, 'Texas': 26448193,
+                 'New York': 19651127, 'Florida': 19552860,
+                 'Illinois': 12882135})
+
+dates = pd.DataFrame({'area': area, 'pop': pop})
+print(dates)
+print()
+print(dates['pop'])
+print()
+print(dates.area)
+print('_________________________________')
+
+# Добавление нового столбца
+dates['density'] = dates['pop'] / dates['area']
+print(dates)
+print('_________________________________')
+print(dates['Florida':'Illinois'])
+print('_________________________________')
+print()
+
+# Можно ссылаться по номеру строк
+print(dates[0:3])
+print('_________________________________')
+print()
+dates[dates.density > 100]
+print(dates[dates.density > 100])
+print('_________________________________')
+print()
+# Универсальные функции: сохранение индекса
+rng = np.random.RandomState(42)
+ser = pd.Series(rng.randint(0, 10, 4))
+print(ser)
+print('_________________________________')
+print()
+df = pd.DataFrame(rng.randint(0, 10, (3, 4)), \
+                  columns=['A', 'B', 'C', 'D'])
+print(df)
+print('_________________________________')
+print()
+# Выравнивание индексов в объектах Series
+
+areas = pd.Series({'Alaska': 1723337, 'Texas': 695662,
+                   'California': 423967}, name='area')
+populations = pd.Series({'California': 38332521, 'Texas': 26448193,
+                         'New York': 19651127}, name='population')
+print(populations / areas)
+print(areas.index.union(populations.index))
+
+# Универсальные функции: выполнение операции
+# между объектами DataFrame и Series
+A = rng.randint(10, size=(3, 4))
+print(A)
+print('_________________________________')
+print(A - A[0])
+print('_________________________________')
+print()
+
+# Обработка отсутствующих данных
+
+vals1 = np.array([1, None, 3, 4])
+print(vals1)
+print('_________________________________')
+print()
+# Выявление пустых значений
+data2 = pd.Series([1, np.nan, 'hello', None])
+print(data2)
+print(data2.isnull())
+print('_________________________________')
+print()
+# булевы маски можно использовать непосредственно в качестве индекса объектов
+# Series или DataFrame
+print(data2[data2.notnull()])
+print('_________________________________')
+print()
+# Удаление пустых значений
+print(data2.dropna())
+print('_________________________________')
+print()
+# Заполнение пустых значений
+data3 = pd.Series([1, np.nan, 2, None, 3], index=list('abcde'))
+print(data3)
+print('_________________________________')
+print(data3.fillna(0))
+print('_________________________________')
+# Можно задать параметр заполнения по направлению «вперед», копируя предыду-
+# щее значение в следующую ячейку:
+print(data3.fillna(method='ffill'))
+print('_________________________________')
+# заполнение по направлению «назад»
+print(data3.fillna(method='bfill'))
+print('_________________________________')
+# Для объектов DataFrame опции аналогичны
+df1 = pd.DataFrame([[1, np.nan, 2], [2, 3, 5], [np.nan, 4, 6]])
+print(df1)
+print('_________________________________')
+print(df1.fillna(method='bfill', axis=1))
+print('_________________________________')
