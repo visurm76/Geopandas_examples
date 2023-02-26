@@ -210,9 +210,9 @@ pop = pop.reindex(index2)
 print(pop)
 print('_________________________________')
 print('используем срезы для выборки данных, например год 2010')
-print(pop[:,2010]) # используем срезы для выборки данных
+print(pop[:, 2010])  # используем срезы для выборки данных
 print('_________________________________')
-print(pop['California',2010]) # используем индексы для выборки данных
+print(pop['California', 2010])  # используем индексы для выборки данных
 print('_________________________________')
 # Превращаем мультиндексный объект Series в индексированный обычным способом DataFrame
 print('Превращаем мультиндексный объект Series в индексированный обычным способом DataFrame')
@@ -225,7 +225,7 @@ print(pop_df.stack())
 print('_________________________________')
 # Добавим еще один столбец
 print('Добавим еще один столбец')
-pop_df = pd.DataFrame({'total': pop, 'under18': [9267089, 9284094,4687374, 4318033,5906301, 6879014]})
+pop_df = pd.DataFrame({'total': pop, 'under18': [9267089, 9284094, 4687374, 4318033, 5906301, 6879014]})
 print(pop_df)
 print('_________________________________')
 # вычисляем по годам долю населения младше 18 лет
@@ -234,3 +234,65 @@ f_u18 = pop_df['under18'] / pop_df['total']
 f_u18.unstack()
 print(f_u18)
 print('_________________________________')
+print('Методы создания мультииндексовНаиболее простой метод создания мультииндексирова')
+print()
+dfm = pd.DataFrame(np.random.rand(4, 2),
+                   index=[['a', 'a', 'b', 'b'], [1, 2, 1, 2]],
+                   columns=['data1', 'data2'])
+print(dfm)
+print('_________________________________')
+print('Явные конструкторы для объектов MultiIndex')
+multindex = pd.MultiIndex.from_arrays([['a', 'a', 'b', 'b'], [1, 2, 1, 2]])
+print(multindex)
+print('Или из списка кортежей, задающих все значения индекса в каждой из точек')
+multindex2 = pd.MultiIndex.from_tuples([('a', 1), ('a', 2), ('b', 1), ('b', 2)])
+print(multindex2)
+print('_________________________________')
+print('Задать названия для уровней объекта MultiIndex')
+pop.index.names = ['state', 'year']
+print(pop)
+print('_________________________________')
+print('# Иерархические индексы и столбцы')
+index = pd.MultiIndex.from_product([[2013, 2014], [1, 2]],
+                                   names=['year', 'visit'])
+columns = pd.MultiIndex.from_product([['Bob', 'Guido', 'Sue'],
+                                      ['HR', 'Temp']],
+                                     names=['subject', 'type'])
+# Имитационная модель
+datas = np.round(np.random.randn(4, 6), 1)
+print(datas)
+print('_________________________________')
+datas[:, ::2] *= 10
+print(datas)
+print('_________________________________')
+datas += 37
+print(datas)
+print('_________________________________')
+print('# Создаем объект DataFrame')
+health_data = pd.DataFrame(datas, index=index, columns=columns)
+print(health_data)
+print('_________________________________________________________')
+print('Сделаем выборки')
+print(health_data['Guido'])
+print('________________________')
+print('Выборка с помощью явного инденсирования')
+print(pop.loc['California':'New York'])
+print('Частиная индексация объектов Series')
+print(pop[:, 2000])
+print('_________________________________________')
+print(pop[pop > 22000000])
+print('_________________________________________')
+print(pop[['California', 'Texas']])
+print('_________________________________________')
+print('Частиная индексация объектов DataFrame')
+print(health_data['Guido', 'HR'])
+print('_________________________________________')
+print(health_data.iloc[:2, :2])
+print('_________________________________________')
+print(health_data.loc[:, ('Bob', 'HR')])
+print('_________________________________________')
+print()
+print('Лучше в данном случае использовать объект\
+IndexSlice, предназначенный библиотекой Pandas как раз для подобной ситуации')
+idx = pd.IndexSlice
+print(health_data.loc[idx[:, 1], idx[:, 'HR']])
