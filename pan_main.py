@@ -296,3 +296,65 @@ print('Лучше в данном случае использовать объе
 IndexSlice, предназначенный библиотекой Pandas как раз для подобной ситуации')
 idx = pd.IndexSlice
 print(health_data.loc[idx[:, 1], idx[:, 'HR']])
+print('______________________________________')
+print('Создание и перестройка индексов')
+print(pop)
+print()
+pop_flat = pop.reset_index(name='population')
+print(pop_flat)
+print('______________________________________')
+print('set_index объекта DataFrame, возвращающего мультииндексированный объект DataFrame')
+print(pop_flat.set_index(['state', 'year']))
+print('______________________________________')
+print('Нужно усреднить результаты измерений показателей \
+по двум визитамв течение года, используем метод mean')
+data_mean = health_data.groupby(level='year').median()
+print(data_mean)
+print('______________________________________')
+print('Далее, воспользовавшись ключевым словом axis, можно получить и среднее зна-\
+                                                        чение по уровням по столбцам')
+print(data_mean.mean(axis=1, level='type'))
+print('______________________________________')
+print('Объединение наборов данных: конкатенация\
+и добавление в конец')
+print('конкатенацию объектов Series и DataFrame с помощью\
+функции pd.concat')
+
+
+def make_df(cols, ind):
+    """Быстро создаем объект DataFrame"""
+    data = {c: [str(c) + str(i) for i in ind] for c in cols}
+    return pd.DataFrame(data, ind)
+
+print(make_df('ABC', range(3)))
+print('______________________________________')
+print('Простая конкатенация с помощью метода pd.concat')
+ser1 = pd.Series(['A', 'B', 'C'], index=[1, 2, 3])
+ser2 = pd.Series(['D', 'E', 'F'], index=[4, 5, 6])
+print(pd.concat([ser1, ser2]))
+print('______________________________________')
+print('Конкатенация объектов более высокой размерности, таких как DataFrame')
+df1 = make_df('AB', [1, 2])
+df2 = make_df('AB', [3, 4])
+print(df1); print(df2); print(pd.concat([df1, df2]))
+print('______________________________________')
+print('Объединение наборов данных: конкатенация и добавление в конец')
+df3 = make_df('AB', [0, 1])
+df4 = make_df('CD', [0, 1])
+print(df3); print(df4); print(pd.concat([df3, df4], axis=1))
+print('______________________________________')
+print("Изучим объединение следующих двух объектов DataFrame, у которых столбцы (но не все!) называются одинаков")
+df5 = make_df('ABC', [1, 2])
+df6 = make_df('BCD', [3, 4])
+print(df5); print(df6); print(pd.concat([df5, df6]))
+print(pd.concat([df5, df6], join='inner')) # join='inner'
+print('______________________________________')
+print('Метод append()')
+print(df1); print(df2); print(df1.append(df2))
+print('______________________________________')
+print('Соединения «один-к-одному»')
+df1 = pd.DataFrame({'employee': ['Bob', 'Jake', 'Lisa', 'Sue'],\
+                    'group': ['Accounting', 'Engineering', 'Engineering','HR']})
+df2 = pd.DataFrame({'employee': ['Lisa', 'Bob', 'Jake', 'Sue'],'hire_date': [2004, 2008, 2012, 2014]})
+df3 = pd.merge(df1, df2)
+print(df3)
