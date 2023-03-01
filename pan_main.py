@@ -1,5 +1,5 @@
 from timeit import timeit
-
+from sys import argv
 import pandas as pd
 import numpy as np
 
@@ -326,6 +326,7 @@ def make_df(cols, ind):
     data = {c: [str(c) + str(i) for i in ind] for c in cols}
     return pd.DataFrame(data, ind)
 
+
 print(make_df('ABC', range(3)))
 print('______________________________________')
 print('Простая конкатенация с помощью метода pd.concat')
@@ -336,25 +337,119 @@ print('______________________________________')
 print('Конкатенация объектов более высокой размерности, таких как DataFrame')
 df1 = make_df('AB', [1, 2])
 df2 = make_df('AB', [3, 4])
-print(df1); print(df2); print(pd.concat([df1, df2]))
+print(df1);
+print(df2);
+print(pd.concat([df1, df2]))
 print('______________________________________')
 print('Объединение наборов данных: конкатенация и добавление в конец')
 df3 = make_df('AB', [0, 1])
 df4 = make_df('CD', [0, 1])
-print(df3); print(df4); print(pd.concat([df3, df4], axis=1))
+print(df3);
+print(df4);
+print(pd.concat([df3, df4], axis=1))
 print('______________________________________')
 print("Изучим объединение следующих двух объектов DataFrame, у которых столбцы (но не все!) называются одинаков")
 df5 = make_df('ABC', [1, 2])
 df6 = make_df('BCD', [3, 4])
-print(df5); print(df6); print(pd.concat([df5, df6]))
-print(pd.concat([df5, df6], join='inner')) # join='inner'
+print(df5);
+print(df6);
+print(pd.concat([df5, df6]))
+print(pd.concat([df5, df6], join='inner'))  # join='inner'
 print('______________________________________')
 print('Метод append()')
-print(df1); print(df2); print(df1.append(df2))
+print(df1);
+print(df2);
+print(df1.append(df2))
 print('______________________________________')
 print('Соединения «один-к-одному»')
-df1 = pd.DataFrame({'employee': ['Bob', 'Jake', 'Lisa', 'Sue'],\
-                    'group': ['Accounting', 'Engineering', 'Engineering','HR']})
-df2 = pd.DataFrame({'employee': ['Lisa', 'Bob', 'Jake', 'Sue'],'hire_date': [2004, 2008, 2012, 2014]})
+df1 = pd.DataFrame({'employee': ['Bob', 'Jake', 'Lisa', 'Sue'], \
+                    'group': ['Accounting', 'Engineering', 'Engineering', 'HR']})
+df2 = pd.DataFrame({'employee': ['Lisa', 'Bob', 'Jake', 'Sue'], 'hire_date': [2004, 2008, 2012, 2014]})
 df3 = pd.merge(df1, df2)
 print(df3)
+print('______________________________________')
+print('Соединения «многие-к-одному»')
+df4 = pd.DataFrame({'group': ['Accounting', 'Engineering', 'HR'],
+                    'supervisor': ['Carly', 'Guido', 'Steve']})
+print(pd.merge(df3, df4))
+print('______________________________________')
+print('Соединения «многие-ко-многим»')
+df5 = pd.DataFrame({'group': ['Accounting', 'Accounting', 'Engineering', 'Engineering',
+                              'HR', 'HR'], 'skills': ['math', 'spreadsheets', 'coding',
+                                                      'linux', 'spreadsheets', 'organization']})
+print(pd.merge(df1, df5))
+print('______________________________________')
+print('Ключевое слово on для определения ключа')
+# Этот параметр работает только в том случае, когда в левом и правом объектах
+# DataFrame имеется указанное название столбца
+print(pd.merge(df1, df2, on='employee'))
+print('______________________________________')
+print('Ключевые слова left_on и right_on')
+# Иногда приходится выполнять слияние двух наборов данных с различными именами
+# столбцов.
+df3 = pd.DataFrame({'name': ['Bob', 'Jake', 'Lisa', 'Sue'],
+                    'salary': [70000, 80000, 120000, 90000]})
+print(pd.merge(df1, df3, left_on="employee", right_on="name"))
+print('______________________________________')
+# Результат этой операции содержит избыточный столбец, который можно при жела-
+# нии удалить. Например, с помощью имеющегося в объектах DataFrame метода drop()
+print(pd.merge(df1, df3, left_on="employee", right_on="name").drop('name', axis=1))
+print('______________________________________')
+print('Ключевые слова left_index и right_index.Иногда удобнее вместо слияния по столбцу выполнить слияние по индексу.')
+df1a = df1.set_index('employee')
+df2a = df2.set_index('employee')
+print(df1a);
+print(df2a)
+print('______________________________________')
+print(pd.merge(df1a, df2a, left_index=True, right_index=True))
+print('______________________________________')
+print('Для удобства в объектах DataFrame реализован метод join(), выполняющий по умолчанию слияние по индексам')
+print(df1a.join(df2a))
+print('______________________________________')
+print('Задание операций над множествами для соединений\
+Во всех предыдущих примерах мы игнорировали один важный нюанс выполнения\
+соединения — вид используемой при соединении операции алгебры множеств. Это\
+играет важную роль в случаях, когда какое-либо значение есть в одном ключевом\
+столбце, но отсутствует в другом.')
+df6 = pd.DataFrame({'name': ['Peter', 'Paul', 'Mary'],
+                    'food': ['fish', 'beans', 'bread']},
+                   columns=['name', 'food'])
+df7 = pd.DataFrame({'name': ['Mary', 'Joseph'],
+                    'drink': ['wine', 'beer']},
+                   columns=['name', 'drink'])
+print(df6);
+print(df7);
+print(pd.merge(df6, df7))
+print('______________________________________')
+# Можно указать это явным об-
+# разом, с помощью ключевого слова how, имеющего по умолчанию значение 'inner'
+print(pd.merge(df6, df7, how='inner'))
+print('______________________________________')
+print("Другие возможные значения ключевого слова how: 'outer', 'left' и 'right")
+print(pd.merge(df6, df7, how='outer'))
+print('______________________________________')
+print(pd.merge(df6, df7, how='left'))
+print('______________________________________')
+print(pd.merge(df6, df7, how='right'))
+print('______________________________________')
+print('Пересекающиеся названия столбцов:ключевое слово suffixes')
+# Вам может встретиться случай, когда в двух входных объектах присутствуют кон-
+# фликтующие названия столбцов.
+df8 = pd.DataFrame({'name': ['Bob', 'Jake', 'Lisa', 'Sue'],
+                    'rank': [1, 2, 3, 4]})
+df9 = pd.DataFrame({'name': ['Bob', 'Jake', 'Lisa', 'Sue'],
+                    'rank': [3, 1, 4, 2]})
+print(df8);
+print(df9);
+print(pd.merge(df8, df9, on="name"))
+print('______________________________________')
+# Если подобное поведение,
+# принятое по умолчанию, неуместно, можно задать пользовательские суффиксы
+# с помощью ключевого слова suffixes
+print(pd.merge(df8, df9, on="name", suffixes=["_L", "_R"]))
+print('______________________________________')
+print('Примеры: данные по штатам')
+pop = pd.read_csv('data-USstates/state-population.csv')
+areas = pd.read_csv('data-USstates/state-areas.csv')
+abbrevs = pd.read_csv('data-USstates/state-abbrevs.csv')
+print(pop.head()); print(); print(areas.head()); print(); print(abbrevs.head())
