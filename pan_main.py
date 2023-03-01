@@ -452,4 +452,81 @@ print('Примеры: данные по штатам')
 pop = pd.read_csv('data-USstates/state-population.csv')
 areas = pd.read_csv('data-USstates/state-areas.csv')
 abbrevs = pd.read_csv('data-USstates/state-abbrevs.csv')
-print(pop.head()); print(); print(areas.head()); print(); print(abbrevs.head())
+print(pop.head());
+print();
+print(areas.head());
+print();
+print(abbrevs.head())
+print('______________________________________')
+print('Просмотрим первые пять строк из файла')
+print(areas.head())
+print('нужно на основе этой информации отсортировать штаты и терри-\
+торию США по плотности населения в 2010 году')
+merged = pd.merge(pop, abbrevs, how='outer',
+                  left_on='state/region', right_on='abbreviation')
+print(merged.head())
+print('______________________________________')
+print('Следует проверить, не было ли каких-то несовпадений')
+print(merged.isnull().any())
+print()
+print('Часть информации о населении отсутствует, выясним, какая именно')
+print(merged[merged['population'].isnull()])
+print('______________________________________________')
+print('Мы видим, что некоторые из новых значений столбца state тоже пусты, а значит,\
+в ключе объекта abbrevs отсутствовали соответствующие записи! Выясним, для\
+каких территорий отсутствуют соответствующие значения')
+print(merged.loc[merged['state'].isnull(), 'state/region'].unique())
+print('Все понятно: наши данные по населению включают записи для Пуэрто-Рико (PR)\
+и США в целом (USA), отсутствующие в ключе аббревиатур штатов. Исправим\
+это, вставив соответствующие записи')
+merged.loc[merged['state/region'] == 'PR', 'state'] = 'Puerto Rico'
+merged.loc[merged['state/region'] == 'USA', 'state'] = 'United States'
+print(merged)
+print()
+print(merged.isnull().any())
+print()
+merged.loc[merged['state/region'] == 'USA', 'abbreviation'] = 'US'
+print(merged)
+print(merged.isnull().any())
+print()
+final = pd.merge(merged, areas, on='state', how='left')
+print(final)
+print(final.isnull().any())
+final.loc[merged['state/region'] == 'USA', 'area (sq. mi)'] = 0
+print(final)
+print(final.isnull().any())
+final.loc[merged['state/region'] == 'USA', 'population'] = 0
+print(final.head())
+print(final.isnull().any())
+print()
+print('выясним отсутствующие значения')
+print(final[final['population'].isnull()].head())
+print('Заполним отсутствующие данные')
+final.loc[merged['state/region'] == 'PR', 'abbreviation'] = 'PRC'
+print(final.isnull().any())
+print('_______________________________________________________')
+print('Выяснили, что есть пустые значения в столбце population, определим в каком именно штате')
+print(final['state'][final['population'].isnull()].unique())
+print('Заполним пустые значения')
+final.loc[merged['state'] == 'Puerto Rico', 'population'] = 1117489.0
+print()
+print(final.isnull().any())
+print('____________________Все данные заполнены___________________________________')
+print()
+print('выберем часть данных, соответствующих 2010 году и всему населению')
+data2010 = final.query("year == 2010 & ages == 'total'")
+print(data2010.head())
+print()
+print('Теперь вычислим плотность населения и выведем данные в соответствующем по-\
+рядке. Начнем с переиндексации наших данных по штату, после чего вычислимрезультат:')
+data2010.set_index('state', inplace=True)
+print()
+density = data2010['population'] / data2010['area (sq. mi)']
+print(density)
+print('Отсортируем в порядке убывания')
+density.sort_values(ascending=False, inplace=True)
+print('Вывести последние 5 строк')
+print(density.tail())
+
+
+
