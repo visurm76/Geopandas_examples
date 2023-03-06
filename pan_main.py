@@ -527,6 +527,92 @@ print('Отсортируем в порядке убывания')
 density.sort_values(ascending=False, inplace=True)
 print('Вывести последние 5 строк')
 print(density.tail())
+print('______________________________')
+print('Данные о планетах')
+import seaborn as sns
 
+planets = sns.load_dataset('planets')
+planets.shape
+print(planets.head())
+print()
+print('Простое агрегирование в библиотеке Pandas')
+rng = np.random.RandomState(42)
+ser = pd.Series(rng.rand(5))
+print(ser)
+print('Summa')
+print('sum', ser.sum())
+print('В случае объекта DataFrame по умолчанию агрегирующие функции возвращают\
+сводные показатели по каждому столбцу')
+df = pd.DataFrame({'A': rng.rand(5),
+                   'B': rng.rand(5)})
+print(df)
+print('Среднее по столбцам')
+print(df.mean())
+print('___________________________________')
+print('Можно вместо этого агрегировать и по строкам, задав аргумент axis')
+print(df.mean(axis='columns'))
+print('____________________________________')
+print('естьудобный метод describe() , вычисляющий сразу несколько самых распростра-\
+ненных сводных показателей для каждого столбца и возвращающий результат')
+print(planets.dropna().describe())
+print('____________________________________')
+print('GroupBy: разбиение, применение, объединение')
+df = pd.DataFrame({'key': ['A', 'B', 'C', 'A', 'B', 'C'],
+                   'data': range(6)}, columns=['key', 'data'])
+print(df)
+print()
+print(df.groupby('key').sum())
+print('____________________________________')
+print('Индексация по столбцам')
+print(planets.groupby('method')['orbital_period'])
+print('Как и в случае с объектом GroupBy,\
+никаких вычислений не происходит до вызова для этого объекта какого-нибудь\
+агрегирующего метода')
+print(planets.groupby('method')['orbital_period'].median())
+print('____________________________________')
+print('Цикл по группам.')
+for (method, group) in planets.groupby('method'):
+    print("{0:30s} shape={1}".format(method, group.shape))
+print('____________________________________')
+print('Цикл по группам.')
+print('Например, можно использовать метод describe() объекта DataFrame\
+для вычисления набора сводных показателей, описывающих каждую группу в данных')
+print(planets.groupby('method')['year'].describe().unstack())
+print('____________________________________')
+print('Агрегирование, фильтрация, преобразование, применение. В частности, у объектов GroupBy\
+имеются методы aggregate(), filter(), transform() и apply(), эффективно выпол-\
+няющие множество полезных операций до объединения сгруппированных данных')
+rng = np.random.RandomState(0)
+df = pd.DataFrame({'key': ['A', 'B', 'C', 'A', 'B', 'C'],
+                   'data1': range(6),
+                   'data2': rng.randint(0, 10, 6)},
+                  columns=['key', 'data1', 'data2'])
 
-
+print('метод aggregate() обеспечивает еще большую гибкость. Он может принимать на входе строку, функцию\
+или список и вычислять все сводные показатели сразу')
+print(df.groupby('key').aggregate(['min', np.median, max]))
+print('_______________________________________________________')
+print('Еще один удобный паттерн — передача в него словаря, связывающего имена столб-\
+цов с операциями, которые должны быть применены к этим столбцам')
+print(df.groupby('key').aggregate({'data1': 'min','data2': 'max'}))
+print('____________________________________')
+print('Фильтрация. Операция фильтрации дает возможность опускать данные в зависи-\
+мости от свойств группы. Например, нам может понадобиться оставить в результате\
+все группы, в которых стандартное отклонение превышает какое-либо критическое\
+значение')
+def filter_func(x):
+    return x['data2'].std() > 4
+print(df); print(df.groupby('key').std());
+print(df.groupby('key').filter(filter_func))
+print('Преобразование. В то время как агрегирующая функция должна возвращать\
+сокращенную версию данных, преобразование может вернуть версию полного набора данных, преобразованную ради дальнейшей их перекомпоновки. При по-\
+добном преобразовании форма выходных данных совпадает с формой входных.')
+print(df.groupby('key').transform(lambda x: x - x.mean()))
+print('____________________________________')
+print("Метод apply(). Метод apply() позволяет применять произвольную функцию к ре-\
+зультатам группировки.")
+def norm_by_data2(x):
+    # x – объект DataFrame сгруппированных значений
+    x['data1'] /= x['data2'].sum()
+    return x
+print(df); print(df.groupby('key').apply(norm_by_data2))
